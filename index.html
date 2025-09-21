@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-Powered Resume Analyzer | 2025 Edition</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PDF.js -->
+  <script src="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.min.js"></script>
+  <!-- DOCX parsing -->
+  <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+  <script src="https://unpkg.com/docxtemplater@3.37.8/build/docxtemplater.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Modern Landing/Upload View -->
+    <section id="uploadView" class="upload-view">
+      <div class="hero-background"></div>
+      <div class="container">
+        <!-- Modern Hero Section -->
+        <div class="hero-section">
+          <div class="hero-content">
+            <h1 class="hero-title">AI-Powered Resume Analyzer</h1>
+            <p class="hero-subtitle">Transform your career with intelligent resume optimization, skill gap analysis, and personalized certification recommendations powered by cutting-edge AI technology.</p>
+            <div class="hero-features">
+              <div class="feature-tag">✨ ATS Optimization</div>
+              <div class="feature-tag">🎯 Skills Analysis</div>
+              <div class="feature-tag">📊 Career Insights</div>
+              <div class="feature-tag">🏆 Certification Roadmap</div>
+              <div class="feature-tag">💰 Salary Optimization</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Upload Interface -->
+        <div class="upload-section">
+          <div class="upload-grid">
+            <!-- Resume Upload Card -->
+            <div class="upload-card glass-card">
+              <div class="card-icon">📄</div>
+              <h3>Upload Your Resume</h3>
+              <p>PDF, DOCX formats supported • Maximum 10MB</p>
+              
+              <div class="file-drop-zone" id="resumeDropZone">
+                <div class="drop-content">
+                  <div class="upload-icon-large">📁</div>
+                  <p class="drop-text">Drag & drop your resume here</p>
+                  <p class="drop-alt">or click to browse files</p>
+                </div>
+                <input type="file" id="resumeFile" accept=".pdf,.docx" class="file-input">
+              </div>
+              
+              <div id="resumeStatus" class="file-status"></div>
+              <div id="resumePreview" class="file-preview hidden"></div>
+            </div>
+            
+            <!-- Job Description Card -->
+            <div class="upload-card glass-card">
+              <div class="card-icon">📋</div>
+              <h3>Target Job Description</h3>
+              <p>Paste or upload the complete job posting for precise analysis</p>
+              
+              <div class="input-tabs">
+                <div class="tab-buttons">
+                  <button class="tab-btn active" data-tab="paste" type="button">
+                    <span class="tab-icon">✏️</span>
+                    Paste Text
+                  </button>
+                  <button class="tab-btn" data-tab="upload" type="button">
+                    <span class="tab-icon">📁</span>
+                    Upload File
+                  </button>
+                </div>
+                
+                <div class="tab-content">
+                  <div id="pasteTab" class="tab-panel active">
+                    <div class="textarea-wrapper">
+                      <textarea id="jdText" rows="8" class="form-control enhanced-textarea" placeholder="Paste the complete job description here...
+
+Example:
+• Job title and company name
+• Required qualifications and skills
+• Key responsibilities and duties
+• Experience requirements
+• Education requirements
+• Technical skills needed
+
+The more detailed the job description, the more accurate your analysis will be."></textarea>
+                      <div class="char-counter">
+                        <span id="charCount">0</span> characters
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div id="uploadTab" class="tab-panel">
+                    <div class="file-drop-zone small" id="jdDropZone">
+                      <div class="drop-content">
+                        <div class="upload-icon-small">📄</div>
+                        <p class="drop-text">Drop job description file here</p>
+                        <p class="drop-alt">or click to browse</p>
+                      </div>
+                      <input type="file" id="jdFile" accept=".txt,.pdf,.docx" class="file-input">
+                    </div>
+                    <div id="jdStatus" class="file-status"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Career Goals Section -->
+          <div class="career-goals-section">
+            <div class="glass-card">
+              <h3>🎯 Career Goals & Context (Optional)</h3>
+              <p>Help us provide more personalized certification and skill recommendations tailored to your career trajectory</p>
+              <div class="career-inputs">
+                <select id="careerLevel" class="form-control">
+                  <option value="">Select your current career level</option>
+                  <option value="entry">Entry Level (0-2 years experience)</option>
+                  <option value="mid">Mid Level (3-5 years experience)</option>
+                  <option value="senior">Senior Level (6-10 years experience)</option>
+                  <option value="lead">Lead/Manager (10+ years experience)</option>
+                  <option value="executive">Executive/Director Level (15+ years)</option>
+                </select>
+                <select id="targetIndustry" class="form-control">
+                  <option value="">Select target industry</option>
+                  <option value="technology">Technology & Software</option>
+                  <option value="finance">Finance & Banking</option>
+                  <option value="healthcare">Healthcare & Life Sciences</option>
+                  <option value="marketing">Marketing & Advertising</option>
+                  <option value="consulting">Consulting & Professional Services</option>
+                  <option value="education">Education & Training</option>
+                  <option value="manufacturing">Manufacturing & Engineering</option>
+                  <option value="retail">Retail & E-commerce</option>
+                  <option value="media">Media & Communications</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced Analyze Button -->
+          <div class="analyze-section">
+            <button id="analyzeBtn" class="btn btn--primary btn--xl enhanced-btn" disabled type="button">
+              <span class="btn-content">
+                <span class="btn-icon">🚀</span>
+                <span class="btn-text">Analyze My Resume with AI</span>
+              </span>
+              <span class="btn-loading hidden">
+                <span class="spinner"></span>
+                <span>Analyzing with AI...</span>
+              </span>
+            </button>
+            <p class="analyze-note">Advanced AI analysis takes 15-20 seconds • Your data is processed securely</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enhanced Dashboard View -->
+    <section id="dashboardView" class="dashboard-view hidden">
+      <div class="container">
+        <!-- Enhanced Score Banner -->
+        <div class="score-banner glass-effect">
+          <div class="score-display">
+            <div class="chart-container" style="position:relative; height:140px; width:140px;">
+              <canvas id="scoreChart"></canvas>
+              <div class="score-center">
+                <span id="scoreValue" class="score-value">0</span>
+                <span class="score-percent">%</span>
+              </div>
+            </div>
+            <div class="score-details">
+              <h2>ATS Compatibility Score</h2>
+              <p id="scoreDescription" class="score-desc">Analyzing your resume for optimal performance...</p>
+              <div class="score-metrics">
+                <div class="metric">
+                  <span class="metric-value" id="keywordMatch">0%</span>
+                  <span class="metric-label">Keyword Match</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-value" id="formatScore">0%</span>
+                  <span class="metric-label">Format Score</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-value" id="skillsMatch">0%</span>
+                  <span class="metric-label">Skills Match</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Navigation Tabs -->
+        <div class="dashboard-nav">
+          <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview" type="button">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">Overview</span>
+            </button>
+            <button class="nav-tab" data-tab="skills" type="button">
+              <span class="tab-icon">🎯</span>
+              <span class="tab-label">Skills Gap</span>
+            </button>
+            <button class="nav-tab" data-tab="certifications" type="button">
+              <span class="tab-icon">🏆</span>
+              <span class="tab-label">Certifications</span>
+            </button>
+            <button class="nav-tab" data-tab="improvements" type="button">
+              <span class="tab-icon">⚡</span>
+              <span class="tab-label">Improvements</span>
+            </button>
+            <button class="nav-tab" data-tab="interview" type="button">
+              <span class="tab-icon">💬</span>
+              <span class="tab-label">Interview Prep</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Content Panels -->
+        <div class="tab-content-area">
+          <!-- Overview Tab -->
+          <div id="overviewTab" class="tab-panel active">
+            <div class="overview-grid">
+              <div class="overview-card glass-card">
+                <h3>📈 Executive Summary</h3>
+                <p id="summaryText" class="summary-content">Analyzing your resume and generating comprehensive insights...</p>
+                <div class="summary-stats">
+                  <div class="stat">
+                    <span class="stat-number" id="matchedSkills">0</span>
+                    <span class="stat-label">Matched Skills</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-number" id="missingSkills">0</span>
+                    <span class="stat-label">Missing Skills</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-number" id="salaryPotential">$0K</span>
+                    <span class="stat-label">Salary Potential</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="overview-card glass-card">
+                <h3>💡 Quick Wins & Action Items</h3>
+                <ul id="quickWinsList" class="quick-wins-list">
+                  <li>Loading personalized recommendations...</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills Gap Tab -->
+          <div id="skillsTab" class="tab-panel">
+            <div class="skills-section">
+              <div class="skills-header">
+                <h3>🎯 Comprehensive Skills Gap Analysis</h3>
+                <p>Identify missing skills and get personalized learning recommendations with estimated time investment and ROI</p>
+              </div>
+              
+              <div class="skills-grid">
+                <div class="skill-category-card glass-card">
+                  <h4>💻 Technical Skills</h4>
+                  <div id="technicalSkills" class="skills-list">
+                    <div class="skill-item">Loading technical skills analysis...</div>
+                  </div>
+                </div>
+                
+                <div class="skill-category-card glass-card">
+                  <h4>🤝 Soft Skills</h4>
+                  <div id="softSkills" class="skills-list">
+                    <div class="skill-item">Loading soft skills analysis...</div>
+                  </div>
+                </div>
+                
+                <div class="skill-category-card glass-card">
+                  <h4>🏭 Industry Skills</h4>
+                  <div id="industrySkills" class="skills-list">
+                    <div class="skill-item">Loading industry skills analysis...</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="learning-roadmap glass-card">
+                <h4>📚 Personalized Learning Roadmap</h4>
+                <div id="learningPath" class="roadmap-content">
+                  <div class="roadmap-item">Generating your personalized learning path...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Certifications Tab -->
+          <div id="certificationsTab" class="tab-panel">
+            <div class="certifications-section">
+              <div class="section-header">
+                <h3>🏆 Strategic Certification Recommendations</h3>
+                <p>Boost your career with industry-recognized certifications that offer the highest ROI for your profile</p>
+              </div>
+              
+              <div class="cert-filters">
+                <select id="certCategoryFilter" class="form-control">
+                  <option value="">All Categories</option>
+                  <option value="Cloud Computing">Cloud Computing</option>
+                  <option value="Project Management">Project Management</option>
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="Data Analytics">Data Analytics</option>
+                  <option value="Agile/Scrum">Agile/Scrum</option>
+                  <option value="Software Development">Software Development</option>
+                </select>
+                
+                <select id="certDifficultyFilter" class="form-control">
+                  <option value="">All Difficulty Levels</option>
+                  <option value="Beginner">Beginner Level</option>
+                  <option value="Intermediate">Intermediate Level</option>
+                  <option value="Advanced">Advanced Level</option>
+                </select>
+                
+                <select id="certROIFilter" class="form-control">
+                  <option value="">All ROI Ranges</option>
+                  <option value="high">High ROI ($25K+ increase)</option>
+                  <option value="medium">Medium ROI ($15K-25K increase)</option>
+                  <option value="entry">Entry Level ($5K-15K increase)</option>
+                </select>
+              </div>
+              
+              <div id="certificationsGrid" class="certifications-grid">
+                <div class="cert-card">Loading certification recommendations...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Improvements Tab -->
+          <div id="improvementsTab" class="tab-panel">
+            <div class="improvements-section">
+              <div class="section-header">
+                <h3>⚡ Detailed Resume Optimization</h3>
+                <p>Step-by-step recommendations to maximize your resume's impact and ATS compatibility</p>
+              </div>
+              
+              <div class="improvements-grid">
+                <div class="improvement-card glass-card">
+                  <h4>🔍 Keyword Optimization</h4>
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="keywordProgress" style="width: 0%"></div>
+                  </div>
+                  <div id="keywordDetails" class="improvement-details">
+                    Analyzing keyword optimization...
+                  </div>
+                </div>
+                
+                <div class="improvement-card glass-card">
+                  <h4>📄 Format & Structure</h4>
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="formatProgress" style="width: 0%"></div>
+                  </div>
+                  <div id="formatChecklist" class="checklist">
+                    Evaluating resume format and structure...
+                  </div>
+                </div>
+                
+                <div class="improvement-card glass-card">
+                  <h4>📊 Content Quality Analysis</h4>
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="contentProgress" style="width: 0%"></div>
+                  </div>
+                  <div id="contentSuggestions" class="suggestions-list">
+                    Analyzing content quality and impact...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interview Prep Tab -->
+          <div id="interviewTab" class="tab-panel">
+            <div class="interview-section">
+              <div class="section-header">
+                <h3>💬 AI-Powered Interview Preparation</h3>
+                <p>Get ready with tailored questions based on your target role and industry trends</p>
+              </div>
+              
+              <div class="interview-categories">
+                <div class="interview-card glass-card">
+                  <h4>🔧 Technical Questions</h4>
+                  <div id="technicalQuestions" class="questions-list">
+                    <div class="question-item">Loading technical interview questions...</div>
+                  </div>
+                </div>
+                
+                <div class="interview-card glass-card">
+                  <h4>🤝 Behavioral Questions</h4>
+                  <div id="behavioralQuestions" class="questions-list">
+                    <div class="question-item">Loading behavioral interview questions...</div>
+                  </div>
+                </div>
+                
+                <div class="interview-card glass-card">
+                  <h4>👥 Leadership & Strategy</h4>
+                  <div id="leadershipQuestions" class="questions-list">
+                    <div class="question-item">Loading leadership interview questions...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions-section">
+          <button id="backBtn" class="btn btn--outline" type="button">
+            <span class="btn-icon">←</span>
+            Back to Upload
+          </button>
+          <button id="downloadBtn" class="btn btn--secondary" type="button">
+            <span class="btn-icon">📄</span>
+            Download Report
+          </button>
+          <button id="shareBtn" class="btn btn--primary" type="button">
+            <span class="btn-icon">🔗</span>
+            Share Results
+          </button>
+          <button id="saveBtn" class="btn btn--secondary" type="button">
+            <span class="btn-icon">💾</span>
+            Save Analysis
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="loading-animation">
+          <div class="loading-circle"></div>
+          <div class="loading-circle"></div>
+          <div class="loading-circle"></div>
+        </div>
+        <h3>🤖 AI Analysis in Progress</h3>
+        <p id="loadingText">Initializing advanced resume analysis...</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="analysisProgress" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
